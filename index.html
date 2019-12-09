@@ -17,56 +17,58 @@
         flex-wrap: wrap;
       }
       
-      .statistic-display {
+      .status-container--item {
         width: 100px;
         height: 100px;
         padding: 10px;
         background: grey;
         margin-bottom: 1px;
         margin-right: 1px;
+        position: relative;
+      }
+      
+      .status-container--item div {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 90%;
+        margin-top: 10%;
       }
 
-      .statistic-display:nth-child(odd) {
+      .status-container--item:nth-child(odd) {
         background: lightgrey;
       }
+      
+      .status-container--item .title {
+        padding: 3px;
+        /*font-size: 8px;*/
+        height: 20px;
+        text-overflow: ellipsis;
+      }
+      
+      .truthey {
+        background: green;
+      }
+
+      .falsey {
+        background: red;
+      }
+      .falsey-status-circle {
+        height: 15px;
+        width: 15px;
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        border-radius: 15px;
+      }
+
 
     </style>
   </head>
 
   <script src="/socket.io/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-<script>
-  const p = (content, id, klass) => `<p id=${id} class=${klass}>${content}</p>`
-  $(function () {
-    var socket = io();
-    const statusContainerId = `status-container`
-    const statusContainer = document.getElementById(statusContainerId)
-    $('form').submit(function(e){
-      e.preventDefault(); // prevents page reloading
-      socket.emit('chat message', $('#m').val());
-      $('#m').val('');
-      return false;
-    });
-    socket.on('chat message', function(msg){
-      $('#messages').append($('<li>').text(msg));
-    });
-    socket.on('status update', function(statusKeys){
-      Object.keys(statusKeys).forEach(k => {
-        const statusElementId = `status-${k}`
-        const elem = document.getElementById(statusElementId)
-        const statusValue = statusKeys[k]
-        const statusKeyValueString = `${k}: ${statusValue}`
-        if(!elem) {
-          statusContainer.insertAdjacentHTML('beforeend',p(statusKeyValueString, statusElementId, 'statistic-display'))
-        } else {
-          elem.innerHTML = statusKeyValueString
-        }
-        
-      })
-      console.log('status update', statusKeys)
-    });
-  });
-</script>
+
   <body>
     <ul id="messages"></ul>
 
@@ -76,3 +78,68 @@
     </form>
   </body>
 </html>
+<script>
+  const generateInnerHtmlForStatusThing = (title, text, truthey) => {
+    const trutheyKlas = truthey ? 'truthey' : 'falsey'
+    return `
+      <div>
+        <p class="title">${title}</p>
+        <span class="falsey-status-circle ${trutheyKlas}"></span>
+        <p>${text}</p>
+      </div>
+    `
+  }
+
+  const createStatusItemElement = (title, content, id, klass, truthey) => {
+    const innerHtml = generateInnerHtmlForStatusThing(title, content, truthey)
+
+    return `
+      <div id=${id} class=${klass}>
+        ${innerHtml}
+      </div>
+    `
+  }
+  
+  function connectSocket(socketName, cb) {
+    var socket = io();
+    socket.on(socketName, cb)
+    return socket
+  }
+
+
+  const updateFunctionGenerator = (containerId, logString) => {
+    return (dataObj) => {
+      const container = document.getElementById(containerId)
+      Object.keys(dataObj).forEach(k => {
+        const snakeCaseKeyName = k.replace(/\s/g, '_')
+        const elementId = `${containerId}--item_${snakeCaseKeyName}`
+        
+        const itemValue = dataObj[k]
+        const outputKeyValueString = `${k}: ${itemValue}`
+        
+        const truthey = Boolean(itemValue)
+        const klas = `"${containerId}--item"`
+        const title = `${k}`
+        const elem = document.getElementById(elementId)
+
+        if(!elem) {
+
+          container.insertAdjacentHTML('beforeend',createStatusItemElement(title, itemValue, elementId, klas, truthey))
+        } else {
+
+          const inner = generateInnerHtmlForStatusThing(title, itemValue, truthey)
+  
+          elem.innerHTML = inner
+        } 
+      })
+
+      console.log(logString, dataObj)
+    }
+  }
+
+  const statusContainerId = `status-container`
+
+  const statusUpdateSocketChannelName = `status update`
+  const updateStatus = updateFunctionGenerator(statusContainerId, statusUpdateSocketChannelName)  
+  connectSocket(statusUpdateSocketChannelName, updateStatus)
+</script>
