@@ -17,6 +17,12 @@ app.post('/status', function(req, res){
   io.emit('status update', req.body);
 });
 
+app.post('/carstatus', function(req, res){
+  res.send('ok');
+  console.log(req.body)
+  io.emit('car status update', req.body);
+});
+
 http.listen(port, function(){
   console.log(`listening on *:${port}`);
 });

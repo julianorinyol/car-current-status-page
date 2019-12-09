@@ -3,7 +3,7 @@ const axios = require('axios');
 const port = 3333
 const host = `http://localhost:${port}`
 
-const endpoint = `${host}/status`
+const endpoint = `${host}/carstatus`
 
 
 
@@ -13,6 +13,13 @@ function getRandomInt(max) {
 
 const postStatusUpdate = () => {
 	const postBody = {
+		cruiseState: {
+		  "enabled": false,
+		  "available": false,
+		  "speedOffset": 0.0,
+		  "speed": 0.0,
+		  "standstill": false
+		},
 		"test item key 1": getRandomInt(1000),
 		"test item key 2": getRandomInt(1000),
 		"test item key 3": getRandomInt(2),
@@ -72,5 +79,5 @@ const postStatusUpdate = () => {
 	});	
 }
 
-setInterval(postStatusUpdate, 500);
-// postStatusUpdate()
+// setInterval(postStatusUpdate, 500);
+postStatusUpdate()

@@ -155,17 +155,33 @@
     return socket
   }
 
+  const carStatusFlatten = (carStatus) => {
 
-  const updateFunctionGenerator = (containerId, logString) => {
+    const keysToUnpack = [ 'cruiseState' ]
+    keysToUnpack.forEach(keyToUnpack => {
+      const nestedObj = carStatus[keyToUnpack]
+
+      Object.keys(nestedObj).forEach(k => {
+        carStatus[`${keyToUnpack}.${k}`] = nestedObj[k]
+      })  
+    })
+
+    return carStatus
+  }
+
+  const updateFunctionGenerator = (containerId, logString, flattenFunc) => {
     return (dataObj) => {
       const container = document.getElementById(containerId)
       const favesContainer = document.getElementById('faves-container')
 
-      Object.keys(dataObj).forEach(k => {
+
+      const flattenedData = flattenFunc(dataObj)
+
+      Object.keys(flattenedData).forEach(k => {
         const snakeCaseKeyName = k.replace(/\s/g, '_')
         const elementId = `${containerId}--item_${snakeCaseKeyName}`
         
-        const itemValue = dataObj[k]
+        const itemValue = flattenedData[k]
         const outputKeyValueString = `${k}: ${itemValue}`
         
         const truthey = Boolean(itemValue)
@@ -182,13 +198,16 @@
         } 
       })
 
-      console.log(logString, dataObj)
+      console.log(logString, flattenedData)
     }
   }
 
   const statusContainerId = `status-container`
 
-  const statusUpdateSocketChannelName = `status update`
-  const updateStatus = updateFunctionGenerator(statusContainerId, statusUpdateSocketChannelName)  
+  // const statusUpdateSocketChannelName = `status update`
+  // const updateStatus = updateFunctionGenerator(statusContainerId, statusUpdateSocketChannelName)
+
+  const statusUpdateSocketChannelName = `car status update`
+  const updateStatus = updateFunctionGenerator(statusContainerId, statusUpdateSocketChannelName, carStatusFlatten)  
   connectSocket(statusUpdateSocketChannelName, updateStatus)
 </script>
