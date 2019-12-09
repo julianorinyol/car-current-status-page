@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>Socket.IO chat</title>
+    <title>Car Status </title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font: 13px Helvetica, Arial; }
@@ -11,7 +11,8 @@
       #messages { list-style-type: none; margin: 0; padding: 0; }
       #messages li { padding: 5px 10px; }
       #messages li:nth-child(odd) { background: #eee; }
-      #status-container {
+      
+      #status-container, #faves-container  {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
@@ -61,28 +62,83 @@
         right: 6px;
         border-radius: 15px;
       }
-
-
     </style>
   </head>
 
   <script src="/socket.io/socket.io.js"></script>
-<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-
   <body>
-    <ul id="messages"></ul>
-
+    <h1>faves</h1>
+    <div id="faves-container"></div>
+    <br />
+    <h1>others</h1>
     <div id="status-container"></div>
     <form id="chat-form" action="">
       <input id="m" autocomplete="off" /><button>Send</button>
     </form>
   </body>
 </html>
+
 <script>
+  const moveIdToContainer = (id, toContainerId) => {
+    const container = document.getElementById(toContainerId)
+    const elem = document.getElementById(id)
+    container.appendChild(elem)
+    console.log(`move id: ${id} to container ${toContainerId}`)
+  }
+
+  const removeItemFromArray = (item, arr ) => {
+    var index = arr.indexOf(item);
+    if (index > -1) {
+      arr.splice(index, 1);
+    }
+    return arr 
+  }
+
+  const toggleFave = (id) => {
+    const rawFaves = localStorage.getItem('faves')
+
+    let toContainerId = 'faves-container'
+    if(!rawFaves) {
+      localStorage.setItem('faves', JSON.stringify([id]))
+    } else {
+
+      let faves = JSON.parse(rawFaves)
+
+      const isFavorited = faves.includes(id)
+
+      if(isFavorited) {
+        faves = removeItemFromArray(id, faves)
+        toContainerId = 'status-container'
+      } else {
+        faves.push(id)
+      }
+      
+      console.log(`isFavorited: ${isFavorited} toContainerId: ${toContainerId}`)
+      localStorage.setItem('faves', JSON.stringify(faves))  
+    }
+
+    moveIdToContainer(id, toContainerId)    
+  }
+
+  const isFavorited = (id) => {
+    const rawFaves = localStorage.getItem('faves')
+
+    if(!rawFaves) {
+      localStorage.setItem('faves', JSON.stringify([]))
+    }
+
+    let faves = JSON.parse(rawFaves)
+
+    const isFavorited = faves.includes(id)
+    return isFavorited
+  }
+    
+
   const generateInnerHtmlForStatusThing = (title, text, truthey) => {
     const trutheyKlas = truthey ? 'truthey' : 'falsey'
+    const updateTime = new Date().toISOString();
     return `
-      <div>
+      <div data-last-updated="${updateTime}">
         <p class="title">${title}</p>
         <span class="falsey-status-circle ${trutheyKlas}"></span>
         <p>${text}</p>
@@ -94,7 +150,7 @@
     const innerHtml = generateInnerHtmlForStatusThing(title, content, truthey)
 
     return `
-      <div id=${id} class=${klass}>
+      <div id=${id} onclick="toggleFave('${id}')" class=${klass}>
         ${innerHtml}
       </div>
     `
@@ -110,6 +166,8 @@
   const updateFunctionGenerator = (containerId, logString) => {
     return (dataObj) => {
       const container = document.getElementById(containerId)
+      const favesContainer = document.getElementById('faves-container')
+
       Object.keys(dataObj).forEach(k => {
         const snakeCaseKeyName = k.replace(/\s/g, '_')
         const elementId = `${containerId}--item_${snakeCaseKeyName}`
@@ -121,12 +179,10 @@
         const klas = `"${containerId}--item"`
         const title = `${k}`
         const elem = document.getElementById(elementId)
-
+        const targetContainer = isFavorited(elementId) ? favesContainer : container
         if(!elem) {
-
-          container.insertAdjacentHTML('beforeend',createStatusItemElement(title, itemValue, elementId, klas, truthey))
+            targetContainer.insertAdjacentHTML('beforeend',createStatusItemElement(title,itemValue, elementId, klas, truthey))  
         } else {
-
           const inner = generateInnerHtmlForStatusThing(title, itemValue, truthey)
   
           elem.innerHTML = inner
