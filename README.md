@@ -1,6 +1,46 @@
+#Summary
+
+A simple status page to debug a control system for a car. The point is to display continuosly updating state and highlight certain parameters you want to watch to be able to focus on them more easily. 
+
+#Setup
+- ensure that node is installed version >= 11.15
+- install dependencies
+`yarn`
+
+#Run It
+- `yarn dev`
+- visit localhost:3333 in the browser
+- in a second terminal run the test script
+`yarn test-status-updates true`  --> sends updates once
+or `yarn test-status-updates`  --> sends updates continuously
 
 
 
-update the stats
 
-curl -d '{"key1":"value1","key2":"value2","key3":"value3","key4":"value4","key5":"value5","key6":"value6","key7":"value7","key8":"value8","key9":"value9","key10":"value10","key11":"value11","key12":"value12","key13":"value13","key14":"value14","key15":"value15","key16":"value16","key17":"value17","key18":"value18","key19":"value19","key20":"value20","key21":"value21","key22":"value22","key23":"value23","key24":"value24","key25":"value25","key26":"value26","key27":"value27","key28":"value28","key29":"value29","key30":"value30","key31":"value31","key32":"value32","key33":"value33","key34":"value34","key35":"value35","key36":"value36","key37":"value37","key38":"value38","key39":"value39","key40":"value40","key41":"value41","key42":"value42","key43":"value43","key44":"value44","key45":"value45","key46":"value46","key47":"value47","key48":"value48","key49":"value49","key50":"value50","key51":"value51","key52":"value52","key53":"value53","key54":"value54","key55":"value55","key56":"value56","key57":"value57","key58":"value58","key59":"value59","key60":"value60","key61":"value61","key62":"value62","key63":"value63","key64":"value64","key65":"value65","key66":"value66","key67":"value67","key68":"value68","key69":"value69","key70":"value70"}' -H "Content-Type: application/json" -X POST http://localhost:3333/status
+The /status endpoint takes in a flat object. For each key and value pair, it will display them, and update them as they change. It also displays the js falseyness of the value as a red or green circle. 
+curl -d '{"key1":"value1","key2":"value2","key3":"value3","key4":"value4"}' -H "Content-Type: application/json" -X POST http://localhost:3333/status
+
+
+If you have nested objects you can add a special endpoint for them, and add a function to unpack them and set them on the base object. 
+
+ie: { 	
+	foo: 'bar',
+	nested: {
+		'baz': 'qux'
+	} 
+}
+
+becomes:
+
+{ 	
+	foo: 'bar',
+	"nested.baz": "qux"
+}
+
+
+With arrays, there is currently no good way to handle them. 
+
+TODO:
+- add a way to handle arrays.
+- add option to save values over time.
+- add option to see the unique values -> the range of available values for a setting.

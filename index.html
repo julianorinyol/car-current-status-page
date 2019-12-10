@@ -40,7 +40,7 @@
       .status-container--item .title {
         padding: 3px;
         height: 20px;
-        text-overflow: ellipsis;
+        /*text-overflow: ellipsis;*/
       }
       
       .truthey {
@@ -63,10 +63,12 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <body>
-    <h1>faves</h1>
+    <h1>Highlights</h1>
+    <p>click to remove</p>
     <div id="faves-container"></div>
     <br />
-    <h1>others</h1>
+    <h1>Other</h1>
+    <p>Click to add to Highlights Section</p>
     <div id="status-container"></div>
   </body>
 </html>
@@ -76,7 +78,6 @@
     const container = document.getElementById(toContainerId)
     const elem = document.getElementById(id)
     container.appendChild(elem)
-    console.log(`move id: ${id} to container ${toContainerId}`)
   }
 
   const removeItemFromArray = (item, arr ) => {
@@ -106,7 +107,6 @@
         faves.push(id)
       }
       
-      console.log(`isFavorited: ${isFavorited} toContainerId: ${toContainerId}`)
       localStorage.setItem('faves', JSON.stringify(faves))  
     }
 
@@ -132,7 +132,7 @@
     const updateTime = new Date().toISOString();
     return `
       <div data-last-updated="${updateTime}">
-        <p class="title">${title}</p>
+        <div class="title">${title}</div>
         <span class="falsey-status-circle ${trutheyKlas}"></span>
         <p>${text}</p>
       </div>
@@ -175,7 +175,7 @@
       const favesContainer = document.getElementById('faves-container')
 
 
-      const flattenedData = flattenFunc(dataObj)
+      const flattenedData = flattenFunc ? flattenFunc(dataObj): dataObj
 
       Object.keys(flattenedData).forEach(k => {
         const snakeCaseKeyName = k.replace(/\s/g, '_')
@@ -197,17 +197,16 @@
           elem.innerHTML = inner
         } 
       })
-
-      console.log(logString, flattenedData)
     }
   }
 
   const statusContainerId = `status-container`
 
-  // const statusUpdateSocketChannelName = `status update`
-  // const updateStatus = updateFunctionGenerator(statusContainerId, statusUpdateSocketChannelName)
-
-  const statusUpdateSocketChannelName = `car status update`
-  const updateStatus = updateFunctionGenerator(statusContainerId, statusUpdateSocketChannelName, carStatusFlatten)  
+  const statusUpdateSocketChannelName = `status update`
+  const updateStatus = updateFunctionGenerator(statusContainerId, statusUpdateSocketChannelName)
   connectSocket(statusUpdateSocketChannelName, updateStatus)
+
+  const carStatusUpdateSocketChannelName = `car status update`
+  const carUpdateStatus = updateFunctionGenerator(statusContainerId, carStatusUpdateSocketChannelName, carStatusFlatten)  
+  connectSocket(carStatusUpdateSocketChannelName, carUpdateStatus)
 </script>
