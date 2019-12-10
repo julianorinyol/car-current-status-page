@@ -38,8 +38,6 @@ const post = (endpoint, body) => {
 }
 
 const postCarStatusUpdate = () => {
-	// "test item key 1": getRandomInt(1000),
-
 	const body = {	
 		cruiseState: {
 		  "enabled": false,
@@ -65,6 +63,7 @@ const postCarStatusUpdate = () => {
 }
 
 
+// call it like: yarn test-status-updates true     - to send the updates just once. 
 if(process.argv.length === 3) {
 	postCarStatusUpdate()
 	postJoystickStatusUpdate()
