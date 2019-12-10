@@ -2,6 +2,8 @@
 
 A simple status page to debug a control system for a car. The point is to display continuosly updating state and highlight certain parameters you want to watch to be able to focus on them more easily. 
 
+![screenshot](docs/carstate-page.png)
+
 # Setup
 - ensure that node is installed version >= 11.15
 - install dependencies
